@@ -39,7 +39,13 @@ jobs:
         shell: pwsh
         run: |
           choco install innosetup -y --no-progress
-          iscc /?
+          $iscc = Get-Command iscc -ErrorAction Stop
+          & $iscc.Source /?
+          if ($LASTEXITCODE -ne 0) {
+            # ISCC /? returns 1 after printing help on some runners; treat that as success.
+            Write-Host "ISCC is installed and available at $($iscc.Source)"
+            $global:LASTEXITCODE = 0
+          }
 
       - name: Build executable
         shell: cmd
