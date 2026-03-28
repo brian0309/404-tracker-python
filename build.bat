@@ -33,8 +33,17 @@ set "FILE_VERSION=1.0.0.0"
 set "COPYRIGHT=Copyright (c) 2026 Brian Carlo"
 
 REM Signing mode: self or none
-if not defined SIGN_MODE set "SIGN_MODE=self"
+if not defined SIGN_MODE (
+    if defined CI (
+        set "SIGN_MODE=none"
+    ) else (
+        set "SIGN_MODE=self"
+    )
+)
 set "CERT_SUBJECT=Scanner404 Self-Signed"
+
+set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%PS_EXE%" set "PS_EXE=powershell"
 
 if not exist "%ENTRY%" (
     echo [ERROR] Entry file "%ENTRY%" not found in %CD%.
@@ -69,7 +78,7 @@ set "EXE_PATH=%OUTDIR%\%APPNAME%.exe"
 
 if /I "%SIGN_MODE%"=="self" (
     echo [INFO] Self-signing executable with a local certificate...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command ^
         "$subject='CN=%CERT_SUBJECT%';" ^
         "$store='Cert:\CurrentUser\My';" ^
         "$cert=Get-ChildItem $store | Where-Object { $_.Subject -eq $subject -and $_.HasPrivateKey } | Sort-Object NotAfter -Descending | Select-Object -First 1;" ^
