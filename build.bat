@@ -86,7 +86,7 @@ if /I "%SIGN_MODE%"=="self" (
 
     echo [INFO] Self-sign complete.
     echo [INFO] Certificate exported to: %OUTDIR%\%APPNAME%-selfsign.cer
-    echo [INFO] To trust this certificate locally (CurrentUser):
+    echo [INFO] To trust this certificate locally ^(CurrentUser^):
     echo        certutil -user -addstore TrustedPublisher "%OUTDIR%\%APPNAME%-selfsign.cer"
     echo        certutil -user -addstore Root "%OUTDIR%\%APPNAME%-selfsign.cer"
 ) else (
