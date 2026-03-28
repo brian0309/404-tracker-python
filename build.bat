@@ -33,7 +33,7 @@ set "FILE_VERSION=1.0.0.0"
 set "COPYRIGHT=Copyright (c) 2026 Brian Carlo"
 
 REM Signing mode: self or none
-set "SIGN_MODE=self"
+if not defined SIGN_MODE set "SIGN_MODE=self"
 set "CERT_SUBJECT=Scanner404 Self-Signed"
 
 if not exist "%ENTRY%" (

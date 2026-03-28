@@ -78,3 +78,26 @@ python main.py
 - Results table includes `Status`, `Page Title`, `URL`, and `Source`.
 - CSV export writes currently visible rows (respects active filter).
 - "Rerun Errors" retries rows currently marked `404` or `ERR`.
+
+## GitHub Actions (Manual Build and Publish)
+
+This repo includes a manual workflow at `.github/workflows/manual-build-publish.yml`.
+
+How to use it:
+
+1. Push your code to GitHub.
+2. Open **Actions** and select **Manual Build and Publish**.
+3. Click **Run workflow**.
+4. Enter:
+  - `version`: release version like `1.0.0`
+  - `publish`: `false` for build only, `true` to publish a release
+
+Behavior:
+
+- If `publish=false`, the workflow builds `scanner404.exe` and uploads it as an artifact.
+- If `publish=true`, it builds first, then creates a GitHub Release and uploads the executable.
+
+Optional approval gate:
+
+- The publish job uses the `release` environment.
+- In your GitHub repo settings, configure the `release` environment with required reviewers to enforce manual approval before publishing.
