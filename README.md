@@ -73,6 +73,43 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Build (Nuitka)
+
+Use the provided build script:
+
+```powershell
+.\build.bat
+```
+
+Default behavior:
+
+- Builds in `standalone` mode
+- Produces folder output under `build/main.dist`
+- Builds an Inno Setup installer EXE under `build/installer`
+
+Prerequisite for installer build:
+
+- Install Inno Setup 6 (`ISCC.exe`)
+- `build.bat` will auto-try install using `winget` or `choco` when `ISCC.exe` is missing
+
+Optional: disable automatic Inno Setup install attempt:
+
+```powershell
+$env:AUTO_INSTALL_INNO="0"; .\build.bat
+```
+
+Optional: skip installer generation in standalone mode:
+
+```powershell
+$env:BUILD_INSTALLER="0"; .\build.bat
+```
+
+Optional onefile mode:
+
+```powershell
+$env:BUILD_MODE="onefile"; .\build.bat
+```
+
 ## Notes
 
 - Results table includes `Status`, `Page Title`, `URL`, and `Source`.
@@ -94,8 +131,8 @@ How to use it:
 
 Behavior:
 
-- If `publish=false`, the workflow builds `scanner404.exe` and uploads it as an artifact.
-- If `publish=true`, it builds first, then creates a GitHub Release and uploads the executable.
+- If `publish=false`, the workflow builds `scanner404-setup.exe` and uploads it as an artifact.
+- If `publish=true`, it builds first, then creates a GitHub Release and uploads the installer executable.
 
 Optional approval gate:
 
