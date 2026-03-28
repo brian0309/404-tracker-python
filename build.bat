@@ -78,6 +78,21 @@ set "EXE_PATH=%OUTDIR%\%APPNAME%.exe"
 
 if /I "%SIGN_MODE%"=="self" (
     echo [INFO] Self-signing executable with a local certificate...
+
+    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command ^
+        "if(-not (Get-PSDrive -Name Cert -PSProvider Certificate -ErrorAction SilentlyContinue)){ exit 10 };" ^
+        "if(-not (Get-Command Set-AuthenticodeSignature -ErrorAction SilentlyContinue)){ exit 11 };" ^
+        "if(-not (Get-Command New-SelfSignedCertificate -ErrorAction SilentlyContinue)){ exit 12 };" ^
+        "exit 0"
+
+    set "SIGN_PRECHECK_RC=%ERRORLEVEL%"
+    if "%SIGN_PRECHECK_RC%"=="10" (
+        echo [WARN] Certificate provider is unavailable in this shell. Skipping self-sign.
+    ) else if "%SIGN_PRECHECK_RC%"=="11" (
+        echo [WARN] Set-AuthenticodeSignature is unavailable. Skipping self-sign.
+    ) else if "%SIGN_PRECHECK_RC%"=="12" (
+        echo [WARN] New-SelfSignedCertificate is unavailable. Skipping self-sign.
+    ) else (
     "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command ^
         "$subject='CN=%CERT_SUBJECT%';" ^
         "$store='Cert:\CurrentUser\My';" ^
@@ -88,16 +103,17 @@ if /I "%SIGN_MODE%"=="self" (
         "$cerPath='%OUTDIR%\%APPNAME%-selfsign.cer';" ^
         "Export-Certificate -Cert $cert -FilePath $cerPath -Force | Out-Null;"
 
-    if errorlevel 1 (
-        echo [ERROR] Self-sign step failed.
-        exit /b 1
-    )
+        if errorlevel 1 (
+            echo [ERROR] Self-sign step failed.
+            exit /b 1
+        )
 
-    echo [INFO] Self-sign complete.
-    echo [INFO] Certificate exported to: %OUTDIR%\%APPNAME%-selfsign.cer
-    echo [INFO] To trust this certificate locally ^(CurrentUser^):
-    echo        certutil -user -addstore TrustedPublisher "%OUTDIR%\%APPNAME%-selfsign.cer"
-    echo        certutil -user -addstore Root "%OUTDIR%\%APPNAME%-selfsign.cer"
+        echo [INFO] Self-sign complete.
+        echo [INFO] Certificate exported to: %OUTDIR%\%APPNAME%-selfsign.cer
+        echo [INFO] To trust this certificate locally ^(CurrentUser^):
+        echo        certutil -user -addstore TrustedPublisher "%OUTDIR%\%APPNAME%-selfsign.cer"
+        echo        certutil -user -addstore Root "%OUTDIR%\%APPNAME%-selfsign.cer"
+    )
 ) else (
     echo [INFO] Signing skipped. SIGN_MODE=%SIGN_MODE%
 )
