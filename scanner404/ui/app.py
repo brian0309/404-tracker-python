@@ -96,6 +96,17 @@ class ScannerApp:
         self._apply_windows_titlebar_theme()
         self._poll_queue()
 
+    def _save_config_safe(self):
+        try:
+            save_config(self.config)
+            return True
+        except Exception as err:
+            messagebox.showwarning(
+                "Config Warning",
+                f"Could not save settings ({err}). Scanning will continue for this session.",
+            )
+            return False
+
     def _resolve_asset(self, filename: str) -> Path:
         return Path(__file__).resolve().parent.parent / "assets" / filename
 
@@ -157,7 +168,7 @@ class ScannerApp:
         if not self.config.has_section("scanner"):
             self.config["scanner"] = {}
         self.config["scanner"]["theme"] = mode
-        save_config(self.config)
+        self._save_config_safe()
 
     def _setup_styles(self):
         self.root.configure(bg=self.palette["bg"])
@@ -788,7 +799,7 @@ class ScannerApp:
         self.config["scanner"]["timeout"] = str(self.timeout_var.get())
         self.config["scanner"]["crawl_subpages"] = "1" if self.crawl_subpages_var.get() else "0"
         self.config["scanner"]["theme"] = self.theme_mode
-        save_config(self.config)
+        self._save_config_safe()
 
         thread = threading.Thread(
             target=self._run_scan,
@@ -838,7 +849,7 @@ class ScannerApp:
         self.config["scanner"]["threads"] = str(self.threads_var.get())
         self.config["scanner"]["timeout"] = str(self.timeout_var.get())
         self.config["scanner"]["theme"] = self.theme_mode
-        save_config(self.config)
+        self._save_config_safe()
 
         url = self.url_var.get().strip()
         thread = threading.Thread(
