@@ -1,5 +1,6 @@
 import asyncio
 import ctypes
+from pathlib import Path
 import queue
 import sys
 import threading
@@ -18,6 +19,8 @@ class ScannerApp:
         self.root.title("404 Link Scanner")
         self.root.geometry("1180x720")
         self.root.minsize(920, 520)
+        self._logo_image = None
+        self._apply_app_icon()
 
         self.config = load_config()
         self.theme_mode = self.config.get("scanner", "theme", fallback="dark").strip().lower()
@@ -92,6 +95,21 @@ class ScannerApp:
         self._build_ui()
         self._apply_windows_titlebar_theme()
         self._poll_queue()
+
+    def _resolve_asset(self, filename: str) -> Path:
+        return Path(__file__).resolve().parent.parent / "assets" / filename
+
+    def _apply_app_icon(self):
+        icon_path = self._resolve_asset("logo.png")
+        if not icon_path.exists():
+            return
+
+        try:
+            self._logo_image = tk.PhotoImage(file=str(icon_path))
+            self.root.iconphoto(True, self._logo_image)
+        except Exception:
+            # Keep startup resilient if the image is unreadable in a local run.
+            self._logo_image = None
 
     def _set_theme(self, mode: str):
         self.theme_mode = "dark" if mode == "dark" else "light"

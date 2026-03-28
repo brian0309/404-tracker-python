@@ -27,6 +27,8 @@ set "OUTDIR=build"
 set "APPNAME=scanner404"
 for %%I in ("%ENTRY%") do set "ENTRY_BASENAME=%%~nI"
 set "ISS_FILE=installer\scanner404.iss"
+set "ICON_PNG=scanner404\assets\logo.png"
+set "ICON_ICO=scanner404\assets\logo.ico"
 set "INSTALLER_OUTDIR=%OUTDIR%\installer"
 set "INSTALLER_BASENAME=%APPNAME%-setup"
 
@@ -80,12 +82,27 @@ if not exist "%ENTRY%" (
     exit /b 1
 )
 
+set "ICON_FLAGS="
+set "INSTALLER_ICON_DEFINE="
+if exist "%ICON_ICO%" (
+    set "ICON_FLAGS=!ICON_FLAGS! --windows-icon-from-ico=%ICON_ICO%"
+    set "INSTALLER_ICON_DEFINE=/DSetupIconFile=%CD%\%ICON_ICO%"
+) else (
+    echo [WARN] Icon file "%ICON_ICO%" not found.
+    echo [WARN] EXE and installer will use default icon. Add a .ico file to enable branding.
+)
+
+if exist "%ICON_PNG%" (
+    set "ICON_FLAGS=!ICON_FLAGS! --include-data-files=%ICON_PNG%=scanner404/assets/logo.png"
+)
+
 echo [INFO] Building "%ENTRY%" with Nuitka...
 echo [INFO] Output directory: %OUTDIR%
 echo [INFO] Build mode: %BUILD_MODE%
 
 python -m nuitka ^
     %MODE_FLAGS% ^
+    --windows-console-mode=disable ^
     --enable-plugin=tk-inter ^
     --follow-imports ^
     --assume-yes-for-downloads ^
@@ -98,6 +115,7 @@ python -m nuitka ^
     --product-version="%PRODUCT_VERSION%" ^
     --file-version="%FILE_VERSION%" ^
     --copyright="%COPYRIGHT%" ^
+    %ICON_FLAGS% ^
     "%ENTRY%"
 
 if errorlevel 1 (
@@ -213,14 +231,26 @@ if /I "%BUILD_MODE%"=="standalone" (
 
         echo [INFO] Building Inno Setup installer...
         echo [INFO] Using ISCC: !ISCC_EXE!
-        "!ISCC_EXE!" /Qp ^
-            "/DAppName=%PRODUCT_NAME%" ^
-            "/DAppVersion=%PRODUCT_VERSION%" ^
-            "/DPublisher=%COMPANY%" ^
-            "/DSourceDir=!DIST_DIR_ABS!" ^
-            "/DOutputDir=!INSTALLER_OUTDIR_ABS!" ^
-            "/DOutputBaseFilename=%INSTALLER_BASENAME%" ^
-            "%ISS_FILE%"
+        if defined INSTALLER_ICON_DEFINE (
+            "!ISCC_EXE!" /Qp ^
+                "/DAppName=%PRODUCT_NAME%" ^
+                "/DAppVersion=%PRODUCT_VERSION%" ^
+                "/DPublisher=%COMPANY%" ^
+                "/DSourceDir=!DIST_DIR_ABS!" ^
+                "/DOutputDir=!INSTALLER_OUTDIR_ABS!" ^
+                "/DOutputBaseFilename=%INSTALLER_BASENAME%" ^
+                "!INSTALLER_ICON_DEFINE!" ^
+                "%ISS_FILE%"
+        ) else (
+            "!ISCC_EXE!" /Qp ^
+                "/DAppName=%PRODUCT_NAME%" ^
+                "/DAppVersion=%PRODUCT_VERSION%" ^
+                "/DPublisher=%COMPANY%" ^
+                "/DSourceDir=!DIST_DIR_ABS!" ^
+                "/DOutputDir=!INSTALLER_OUTDIR_ABS!" ^
+                "/DOutputBaseFilename=%INSTALLER_BASENAME%" ^
+                "%ISS_FILE%"
+        )
 
         if errorlevel 1 (
             echo [ERROR] Installer build failed.

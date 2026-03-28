@@ -41,6 +41,9 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
+#ifdef SetupIconFile
+SetupIconFile={#SetupIconFile}
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
