@@ -154,9 +154,7 @@ class Scanner404:
                 return
             head_status = status
 
-        should_fetch_body = head_status == 200 and expand_links
-
-        if should_fetch_body:
+        if head_status == 200:
             if body is None:
                 status, body, title = await self.fetch_get(url)
             else:
@@ -165,7 +163,7 @@ class Scanner404:
             status_str = str(status) if status else "ERR"
             self.update_queue.put(("row", url, status_str, title))
 
-            if status == 200 and body:
+            if expand_links and status == 200 and body:
                 for link in self.extract_links(body, url):
                     is_internal_link = self.is_internal(link)
                     child_expand_links = is_internal_link and self.crawl_subpages
